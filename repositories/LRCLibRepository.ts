@@ -15,7 +15,7 @@ interface CachedLyrics {
 }
 
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000
-const FETCH_TIMEOUT = 5000
+const FETCH_TIMEOUT = 30000
 
 export const LRCLibRepository = {
   async fetchLyrics(
@@ -27,7 +27,7 @@ export const LRCLibRepository = {
       return { status: 'not_found', lines: [], trackName, artistName: artistName ?? '' }
     }
 
-    const cacheKey = `lyrics_${trackName}_${artistName || 'unknown'}`
+    const cacheKey = `lyrics_${trackName.toLowerCase().trim()}_${(artistName ?? 'unknown').toLowerCase().trim()}`
     const cached = await StorageAdapter.get<CachedLyrics>(cacheKey)
     if (cached?.timestamp && Date.now() - cached.timestamp < CACHE_DURATION) {
       console.log('[LRCLib] Cache hit:', trackName)

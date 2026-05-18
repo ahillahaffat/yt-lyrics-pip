@@ -15,6 +15,7 @@ export const LyricsService = {
     )
 
     if (result.status === 'not_found' && parsed.artistName?.trim()) {
+      console.log('[LyricsService] Retrying without artist...')
       return LRCLibRepository.fetchLyrics(parsed.trackName, null)
     }
 

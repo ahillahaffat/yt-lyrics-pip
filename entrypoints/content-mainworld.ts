@@ -36,18 +36,26 @@ export default defineUnlistedScript(() => {
     })
 
     let currentVideoId: string | null = null
+    let pendingVideoId: string | null = null
 
     setInterval(() => {
       const data = player.getVideoData()
       if (!data?.video_id) return
-      if (data.video_id === currentVideoId) return
-      currentVideoId = data.video_id
-      sendToIsolated('VIDEO_CHANGED', {
-        videoId: data.video_id,
-        title: data.title ?? '',
-        author: data.author ?? ''
-      })
-    }, 500)
+
+      if (data.video_id !== currentVideoId) {
+        pendingVideoId = data.video_id
+      }
+
+      if (pendingVideoId && data.video_id === pendingVideoId && data.title?.trim()) {
+        currentVideoId = pendingVideoId
+        pendingVideoId = null
+        sendToIsolated('VIDEO_CHANGED', {
+          videoId: data.video_id,
+          title: data.title,
+          author: data.author ?? ''
+        })
+      }
+    }, 300)
 
     setInterval(() => {
       sendToIsolated('TIME_UPDATE', {

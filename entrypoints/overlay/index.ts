@@ -149,14 +149,12 @@ function updateHighlight(currentTime: number): void {
   }
 }
 
-// Refresh button
 refreshBtn?.addEventListener('click', async () => {
   if (!currentVideoData) return
 
   refreshBtn.classList.add('spinning')
   refreshBtn.disabled = true
 
-  // Kirim ulang VIDEO_CHANGED ke background supaya re-fetch lyrics
   MessageBus.send({ type: 'VIDEO_CHANGED', payload: currentVideoData })
 
   setTimeout(() => {
