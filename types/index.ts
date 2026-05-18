@@ -14,8 +14,10 @@ export interface LyricLine {
   text: string
 }
 
+export type LyricsStatus = 'synced' | 'plain' | 'not_found' | 'not_music'
+
 export interface LyricsResult {
-  status: 'synced' | 'plain' | 'not_found'
+  status: LyricsStatus
   lines: LyricLine[]
   trackName: string
   artistName: string

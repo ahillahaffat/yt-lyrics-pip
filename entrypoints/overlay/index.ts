@@ -44,6 +44,16 @@ function extractDominantColor(img: HTMLImageElement): { r: number; g: number; b:
   }
 }
 
+function resetToIdle(): void {
+  if (trackName) trackName.textContent = '—'
+  if (artistName) artistName.textContent = '—'
+  if (lyricsList) lyricsList.innerHTML = ''
+  if (syncBadge) {
+    syncBadge.textContent = 'Not music'
+    syncBadge.className = 'badge not-found'
+  }
+}
+
 function applyDynamicColor(img: HTMLImageElement): void {
   const { r, g, b } = extractDominantColor(img)
   const dr = Math.round(r * 0.6)
@@ -163,19 +173,35 @@ refreshBtn?.addEventListener('click', async () => {
   }, 1500)
 })
 
+let pendingVideoId: string | null = null
+
 MessageBus.listen((message: MessageType) => {
   switch (message.type) {
+    case 'VIDEO_CHANGED': {
+      currentVideoData = message.payload
+      pendingVideoId = message.payload.videoId
+      break
+    }
+
     case 'LYRICS_READY': {
       currentLyrics = message.payload
       currentLineIndex = -1
+
+      if (message.payload.status === 'not_music') {
+        pendingVideoId = null
+        resetToIdle()
+        break
+      }
+
+      if (pendingVideoId) {
+        updateThumbnail(pendingVideoId)
+        pendingVideoId = null
+      }
+
       renderLyrics(message.payload)
       break
     }
-    case 'VIDEO_CHANGED': {
-      currentVideoData = message.payload
-      updateThumbnail(message.payload.videoId)
-      break
-    }
+
     case 'TIME_UPDATE': {
       updateHighlight(message.payload.currentTime)
       break
