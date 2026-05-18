@@ -54,6 +54,30 @@ function resetToIdle(): void {
   }
 }
 
+function showIdleState(): void {
+  if (thumbnail) {
+    thumbnail.src = '/wxt.svg'
+    thumbnail.style.padding = '10px'
+    thumbnail.style.background = 'rgba(255,255,255,0.05)'
+  }
+  if (trackName) trackName.textContent = 'YT Lyrics PiP'
+  if (artistName) artistName.textContent = 'Play a song on YouTube to see lyrics'
+  if (lyricsList) {
+    lyricsList.innerHTML = `
+      <div class="idle-state">
+        <img src="/logo.png" alt="Logo" class="idle-logo" />
+        <p class="idle-title">No song playing</p>
+        <p class="idle-desc">Start playing music on YouTube and lyrics will appear here automatically.</p>
+      </div>
+    `
+  }
+  if (syncBadge) {
+    syncBadge.textContent = 'Waiting'
+    syncBadge.className = 'badge waiting'
+  }
+  if (bgBlur) bgBlur.style.background = ''
+}
+
 function applyDynamicColor(img: HTMLImageElement): void {
   const { r, g, b } = extractDominantColor(img)
   const dr = Math.round(r * 0.6)
@@ -208,5 +232,7 @@ MessageBus.listen((message: MessageType) => {
     }
   }
 })
+
+showIdleState()
 
 chrome.runtime.sendMessage({ type: 'OVERLAY_READY' }).catch(() => {})
