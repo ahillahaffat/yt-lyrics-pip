@@ -13,7 +13,16 @@ export default defineConfig({
     ],
     web_accessible_resources: [
       {
-        resources: ['overlay.html', 'content-mainworld.js'],
+        resources: [
+          'overlay.html',
+          'overlay/index.html',
+          'assets/*.css',
+          'assets/*.js',
+          'chunks/*.js',
+          'content-mainworld.js',
+          '*.svg',
+          '*.png'
+        ],
         matches: ['https://www.youtube.com/*']
       }
     ]

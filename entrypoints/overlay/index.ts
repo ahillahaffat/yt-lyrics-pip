@@ -1,4 +1,3 @@
-import { MessageBus } from '@/infrastructure/MessageBus'
 import type { MessageType, LyricsResult, LyricLine, VideoData } from '@/types'
 
 let currentLyrics: LyricsResult | null = null
@@ -63,14 +62,26 @@ function showIdleState(): void {
   if (trackName) trackName.textContent = 'YT Lyrics PiP'
   if (artistName) artistName.textContent = 'Play a song on YouTube to see lyrics'
   if (lyricsList) {
-    lyricsList.innerHTML = `
-      <div class="idle-state">
-        <img src="/logo.png" alt="Logo" class="idle-logo" />
-        <p class="idle-title">No song playing</p>
-        <p class="idle-desc">Start playing music on YouTube and lyrics will appear here automatically.</p>
-      </div>
-    `
-  }
+    while (lyricsList.firstChild) lyricsList.removeChild(lyricsList.firstChild)
+      const idle = document.createElement('div')
+      idle.className = 'idle-state'
+
+      const logo = document.createElement('img')
+      logo.src = '/logo.png'
+      logo.alt = 'Logo'
+      logo.className = 'idle-logo'
+
+      const title = document.createElement('p')
+      title.className = 'idle-title'
+      title.textContent = 'No song playing'
+
+      const desc = document.createElement('p')
+      desc.className = 'idle-desc'
+      desc.textContent = 'Start playing music on YouTube and lyrics will appear here automatically.'
+
+      idle.append(logo, title, desc)
+      lyricsList.appendChild(idle)
+    }
   if (syncBadge) {
     syncBadge.textContent = 'Waiting'
     syncBadge.className = 'badge waiting'
@@ -126,7 +137,7 @@ function renderLyrics(lyrics: LyricsResult): void {
     syncBadge.className = 'badge not-found'
   }
 
-  lyricsList.innerHTML = ''
+  while (lyricsList.firstChild) lyricsList.removeChild(lyricsList.firstChild)
 
   if (lyrics.status === 'not_found') {
     const msg = document.createElement('div')
@@ -144,7 +155,7 @@ function renderLyrics(lyrics: LyricsResult): void {
 
     if (line.time !== null) {
       el.addEventListener('click', () => {
-        MessageBus.send({ type: 'SEEK_TO', payload: { time: line.time as number } })
+        window.opener?.postMessage({ type: 'SEEK_TO', payload: { time: line.time as number } }, '*')
       })
       el.classList.add('clickable')
     }
@@ -185,12 +196,9 @@ function updateHighlight(currentTime: number): void {
 
 refreshBtn?.addEventListener('click', async () => {
   if (!currentVideoData) return
-
   refreshBtn.classList.add('spinning')
   refreshBtn.disabled = true
-
-  MessageBus.send({ type: 'VIDEO_CHANGED', payload: currentVideoData })
-
+  window.opener?.postMessage({ type: 'VIDEO_CHANGED', payload: currentVideoData }, '*')
   setTimeout(() => {
     refreshBtn.classList.remove('spinning')
     refreshBtn.disabled = false
@@ -199,15 +207,19 @@ refreshBtn?.addEventListener('click', async () => {
 
 let pendingVideoId: string | null = null
 
-MessageBus.listen((message: MessageType) => {
+window.addEventListener('message', (e: MessageEvent) => {
+  console.log('[Overlay] Message received:', e.data?.type, e.origin)
+  const message = e.data as MessageType
   switch (message.type) {
     case 'VIDEO_CHANGED': {
+      console.log('[Overlay] VIDEO_CHANGED:', message.payload)
       currentVideoData = message.payload
       pendingVideoId = message.payload.videoId
       break
     }
 
     case 'LYRICS_READY': {
+      console.log('[Overlay] LYRICS_READY:', message.payload?.status)
       currentLyrics = message.payload
       currentLineIndex = -1
 
