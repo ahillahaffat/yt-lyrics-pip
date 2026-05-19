@@ -1,4 +1,5 @@
 import { MessageBus } from '@/infrastructure/MessageBus'
+import { StorageAdapter } from '@/infrastructure/StorageAdapter'
 import type { MessageType } from '@/types'
 
 export default defineContentScript({
@@ -34,40 +35,42 @@ export default defineContentScript({
       }
     })
 
-function injectToggleButton(): void {
-  const btn = document.createElement('button')
-  btn.id = 'yt-lyrics-pip-btn'
-  btn.textContent = '🎵 Lyrics'
-  btn.style.cssText = `
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    z-index: 9999;
-    background: #E82684;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    // box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  `
+  async function injectToggleButton(): Promise<void> {
+    const isActive = await StorageAdapter.get<boolean>('extension_active') ?? false
 
-  btn.addEventListener('click', async () => {
-    if (pipWindow && !pipWindow.closed) {
-      closePiP()
-      btn.textContent = '🎵 Lyrics'
-    } else {
-      await openPiP()
-      btn.textContent = '✕ Close'
-    }
-  })
+    const btn = document.createElement('button')
+    btn.id = 'yt-lyrics-pip-btn'
+    btn.textContent = '🎵 Lyrics'
+    btn.style.cssText = `
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      z-index: 9999;
+      background: #E82684;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: ${isActive ? 'block' : 'none'};
+    `
 
-  document.body.appendChild(btn)
-}
+    btn.addEventListener('click', async () => {
+      if (pipWindow && !pipWindow.closed) {
+        closePiP()
+        btn.textContent = '🎵 Lyrics'
+      } else {
+        await openPiP()
+        btn.textContent = '✕ Close'
+      }
+    })
 
-injectToggleButton()
+    document.body.appendChild(btn)
+  }
+
+  await injectToggleButton()
 
     async function openPiP(): Promise<void> {
       if (pipWindow && !pipWindow.closed) return
@@ -129,6 +132,8 @@ injectToggleButton()
 
         pip.addEventListener('pagehide', () => {
           pipWindow = null
+          const btn = document.getElementById('yt-lyrics-pip-btn') as HTMLButtonElement | null
+          if (btn) btn.textContent = '🎵 Lyrics'
         })
 
         console.log('[CS] Document PiP opened')
@@ -145,6 +150,16 @@ injectToggleButton()
 
     chrome.runtime.onMessage.addListener((message) => {
       console.log('[CS] Message received:', message.type)
+
+      if (message.type === 'EXTENSION_TOGGLED') {
+        const btn = document.getElementById('yt-lyrics-pip-btn') as HTMLButtonElement | null
+        if (message.payload.active) {
+          if (btn) btn.style.display = 'block'
+        } else {
+          if (btn) btn.style.display = 'none'
+          closePiP()
+        }
+      }
 
       if (message.type === 'LYRICS_READY') {
         lastLyricsReady = message

@@ -21,7 +21,9 @@ export default defineConfig({
           'chunks/*.js',
           'content-mainworld.js',
           '*.svg',
-          '*.png'
+          '*.png',
+          'wxt.svg',
+          'logo.png'
         ],
         matches: ['https://www.youtube.com/*']
       }

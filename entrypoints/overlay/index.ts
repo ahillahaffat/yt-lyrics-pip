@@ -53,9 +53,21 @@ function resetToIdle(): void {
   }
 }
 
+function assetURL(filename: string): string {
+  const scripts = document.querySelectorAll('script[src]')
+  for (const s of Array.from(scripts)) {
+    const src = (s as HTMLScriptElement).src
+    if (src.includes('chrome-extension://')) {
+      const base = src.split('/').slice(0, 3).join('/')
+      return `${base}/${filename}`
+    }
+  }
+  return new URL(filename, import.meta.url).href
+}
+
 function showIdleState(): void {
   if (thumbnail) {
-    thumbnail.src = '/wxt.svg'
+    thumbnail.src = assetURL('wxt.svg')
     thumbnail.style.padding = '10px'
     thumbnail.style.background = 'rgba(255,255,255,0.05)'
   }
@@ -63,25 +75,26 @@ function showIdleState(): void {
   if (artistName) artistName.textContent = 'Play a song on YouTube to see lyrics'
   if (lyricsList) {
     while (lyricsList.firstChild) lyricsList.removeChild(lyricsList.firstChild)
-      const idle = document.createElement('div')
-      idle.className = 'idle-state'
 
-      const logo = document.createElement('img')
-      logo.src = '/logo.png'
-      logo.alt = 'Logo'
-      logo.className = 'idle-logo'
+    const idle = document.createElement('div')
+    idle.className = 'idle-state'
 
-      const title = document.createElement('p')
-      title.className = 'idle-title'
-      title.textContent = 'No song playing'
+    const logo = document.createElement('img')
+    logo.src = assetURL('logo.png')
+    logo.alt = 'Logo'
+    logo.className = 'idle-logo'
 
-      const desc = document.createElement('p')
-      desc.className = 'idle-desc'
-      desc.textContent = 'Start playing music on YouTube and lyrics will appear here automatically.'
+    const title = document.createElement('p')
+    title.className = 'idle-title'
+    title.textContent = 'No song playing'
 
-      idle.append(logo, title, desc)
-      lyricsList.appendChild(idle)
-    }
+    const desc = document.createElement('p')
+    desc.className = 'idle-desc'
+    desc.textContent = 'Start playing music on YouTube and lyrics will appear here automatically.'
+
+    idle.append(logo, title, desc)
+    lyricsList.appendChild(idle)
+  }
   if (syncBadge) {
     syncBadge.textContent = 'Waiting'
     syncBadge.className = 'badge waiting'
