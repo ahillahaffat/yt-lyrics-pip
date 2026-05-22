@@ -279,3 +279,11 @@ body {
   background: #6b7280;
   box-shadow: 0 0 6px #6b7280;
 }
+
+.idle-credits {
+  font-size: 12px;
+  opacity: 0.5;
+  margin-top: 10px;
+  text-align: center;
+  font-weight: 300;
+}

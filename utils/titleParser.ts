@@ -35,7 +35,13 @@ function stripNoise(str: string): string {
 }
 
 function normalizeArtist(name: string): string {
-  return name.replace(/^the\s+/i, '').toLowerCase().trim()
+  return name
+    .replace(/\s*-\s*Topic$/i, '')
+    .replace(/\s*VEVO$/i, '')
+    .replace(/\s*Official$/i, '')
+    .replace(/^the\s+/i, '')
+    .toLowerCase()
+    .trim()
 }
 
 export const titleParser = {
@@ -61,7 +67,10 @@ export const titleParser = {
       }
     }
 
-    const cleanAuthor = author.replace(/VEVO|Official/gi, '').trim()
+    const cleanAuthor = author
+    .replace(/\s*-\s*Topic$/i, '')
+    .replace(/VEVO|Official/gi, '')
+    .trim()
     return {
       trackName: cleaned,
       artistName: cleanAuthor || null

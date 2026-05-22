@@ -17,7 +17,8 @@ export const LyricsService = {
 
     const result = await LRCLibRepository.fetchLyrics(
       parsed.trackName,
-      parsed.artistName
+      parsed.artistName,
+      video.videoId
     )
 
     if (result.status === 'not_found' && parsed.artistName?.trim()) {

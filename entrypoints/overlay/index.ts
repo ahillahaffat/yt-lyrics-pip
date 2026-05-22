@@ -92,7 +92,11 @@ function showIdleState(): void {
     desc.className = 'idle-desc'
     desc.textContent = 'Start playing music on YouTube and lyrics will appear here automatically.'
 
-    idle.append(logo, title, desc)
+    const credits = document.createElement('p')
+    credits.className = 'idle-credits'
+    credits.textContent = 'Created by Kammala'
+
+    idle.append(logo, title, desc, credits)
     lyricsList.appendChild(idle)
   }
   if (syncBadge) {
